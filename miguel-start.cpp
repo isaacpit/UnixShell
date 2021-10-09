@@ -235,18 +235,18 @@ int main (){
 					
 					int index_output = find_IO(split_cmd, "<");
 					// support output redirection
-					// if (index_output > 0){
-					// 	cout << "Performing the executable command on file: " << split_cmd[index_output + 1] << endl;
+					if (index_output > 0){
+						cout << "Performing the executable command on file: " << split_cmd[index_output + 1] << endl;
 						
-					// 	// creating new file to store execvp outputs onto
-					// 	int fd_output = open(split_cmd[index_output + 1].c_str(), O_RDONLY);
-					// 	dup2(fd_output, 0);
-					// 	close(fd_output);
+						// creating new file to store execvp outputs onto
+						int fd_output = open(split_cmd[index_output + 1].c_str(), O_RDONLY);
+						dup2(fd_output, 0);
+						close(fd_output);
 						
-					// 	// remove < and the following filename from the command
-					// 	split_cmd.erase(split_cmd.begin() + index_output + 1);
-					// 	split_cmd.erase(split_cmd.begin() + index_output);
-					// }
+						// remove < and the following filename from the command
+						split_cmd.erase(split_cmd.begin() + index_output + 1);
+						split_cmd.erase(split_cmd.begin() + index_output);
+					}
 					
 					int index_input = find_IO(split_cmd, ">");
 					// support input redirection
