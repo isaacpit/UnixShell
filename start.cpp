@@ -10,6 +10,46 @@
 #include <fcntl.h>
 using namespace std;
 
+#define P_READ 0
+#define P_WRITE 1
+
+#define STD_IN 0
+#define STD_OUT 1
+
+void run_two(char* args1[], char* args2[], int fd[]) {
+    int pid_inner = fork();
+    cout << "cmd = 1!" << endl;
+    
+    if (pid_inner == 0) {
+        // inner child process
+        // first process : ls -la / 
+        cout << "inner child: " << pid_inner << endl;
+        cout << "\targs: " << args1[0] << endl;
+        dup2(fd[P_WRITE], STD_OUT);
+        close(fd[P_READ]);
+        close(fd[P_WRITE]);
+        cout << "HERE IS MORE" << endl;
+        
+        execvp(args1[0], args1);
+    } else {
+        // inner "parent" process
+        // second process : grep dev
+        cout << "inner parent: " << pid_inner << endl;
+        cout << "\targs: " << args2[0] << endl;
+        waitpid(pid_inner, 0, 0);
+        dup2(fd[P_READ], STD_IN);
+        close(fd[P_READ]);
+        close(fd[P_WRITE]);
+        // string s;
+        // while (getline(cin, s)) {
+        //     cout << s << endl;
+        // }
+        // cout << "AFTER READING STDIN: "<< endl;
+        execvp(args2[0], args2);
+        // exit(0);
+    }
+}
+
 int main (){
 
 
@@ -24,11 +64,6 @@ int main (){
     char* echo_args1[] = {"echo", "'test1'", NULL};
     char* echo_args2[] = {"echo", "'test2'", NULL};
 
-    int P_READ = 0;
-    int P_WRITE = 1;
-
-    int STD_IN = 0;
-    int STD_OUT = 1;
 
     while (true){
         // cout << "My Shell$ ";
@@ -50,37 +85,18 @@ int main (){
             cout << "outer child: " << pid << endl;
             pipe(fd);
             cout << "fd: " << fd[0] << ", " << fd[1] << endl;
-            int pid_inner = fork();
             
-
-            if (pid_inner == 0) {
-                // inner child process
-                // first process : ls -la / 
-                cout << "inner child: " << pid_inner << endl;
-                cout << "\targs: " << args1[0] << endl;
-                dup2(fd[P_WRITE], STD_OUT);
-                close(fd[P_READ]);
-                close(fd[P_WRITE]);
-                cout << "HERE IS MORE" << endl;
+            string cmd;
+            getline(cin, cmd);
+            for (int i = 0; i < 1; ++i) {
+                cout << "IN LOOP" << endl;
                 
-                execvp(args1[0], args1);
-            } else {
-                // inner "parent" process
-                // second process : grep dev
-                cout << "inner parent: " << pid_inner << endl;
-                cout << "\targs: " << args2[0] << endl;
-                waitpid(pid_inner, 0, 0);
-                dup2(fd[P_READ], STD_IN);
-                close(fd[P_READ]);
-                close(fd[P_WRITE]);
-                // string s;
-                // while (getline(cin, s)) {
-                //     cout << s << endl;
-                // }
-                // cout << "AFTER READING STDIN: "<< endl;
-                execvp(args2[0], args2);
-                // exit(0);
+                if (cmd == "1") {
+                    run_two(args1, args2, fd);
+                }
+                
             }
+            
         
         }else{
             cout << "parent: " << pid << endl;
