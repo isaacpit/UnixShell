@@ -50,6 +50,60 @@ void run_two(char* args1[], char* args2[], int fd[]) {
     }
 }
 
+void run_n(char* args1[], int fd[], int i, int stop) {
+    cout << "\t(" << i << "/" << stop << ")" << endl;
+    int pid_inner = fork();
+    printf("FORKED\n");
+    
+
+    
+    if (pid_inner == 0) {
+        // inner child process
+        // first process : ls -la / 
+        // if (i == 1) {
+        //     string s;
+        //     while (getline(cin, s)) {
+        //         cout << s << endl;
+        //     }
+        //     cout << "AFTER READING STDIN of CHILD: "<< endl;
+        //     // exit(0);
+        // }
+        cout << "inner child: " << pid_inner << endl;
+        cout << "\targs: " << args1[0] << endl;
+        if (i < stop - 1) {
+            dup2(fd[P_WRITE], STD_OUT);
+        }
+        close(fd[P_READ]);
+        close(fd[P_WRITE]);
+        cout << "HERE IS MORE" << endl;
+        
+        execvp(args1[0], args1);
+    } else {
+        // inner "parent" process
+        // second process : grep dev
+        cout << "inner parent: " << pid_inner << endl;
+        // if (i == stop - 1) {
+            waitpid(pid_inner, 0, 0);
+        // }
+        
+        dup2(fd[P_READ], STD_IN);
+        close(fd[P_READ]);
+        close(fd[P_WRITE]);
+        if (i == 1) {
+            exit(0);
+        }
+        // exit(0);
+        // string s;
+        // while (getline(cin, s)) {
+        //     cout << s << endl;
+        // }
+        // cout << "AFTER READING STDIN of PARENT: "<< endl;
+        // exit(0);
+    }
+}
+
+
+
 int main (){
 
 
@@ -59,8 +113,9 @@ int main (){
 
     string s = "ps aux | awk '/init/{print $1}' | sort -r";
 
-    char* args1[] = {"ls", "-la", "/", NULL};
-    char* args2[] = {"grep", "dev", NULL};
+    char* args1[] = { "ls", "-la", "/", NULL };
+    char* args2[] = { "grep", "dev", NULL };
+    char* args3[] = { "awk", "'{print $1, $2, $3, \"YOU DID IT\"}'", NULL };
     char* echo_args1[] = {"echo", "'test1'", NULL};
     char* echo_args2[] = {"echo", "'test2'", NULL};
 
@@ -83,18 +138,42 @@ int main (){
             // preparing the input command for execution
             
             cout << "outer child: " << pid << endl;
-            pipe(fd);
-            cout << "fd: " << fd[0] << ", " << fd[1] << endl;
             
             string cmd;
+            cout << "enter the number of commands you want" << endl;
             getline(cin, cmd);
-            for (int i = 0; i < 1; ++i) {
-                cout << "IN LOOP" << endl;
+            int STOP = atoi(cmd.c_str());
+            cout << "RUNNING WITH STOP = " << STOP << endl;
+            for (int i = 0; i < STOP; ++i) {
                 
+                pipe(fd);
+
+                // if (i == 1) {
+                //     string s;
+                //     while (getline(cin, s)) {
+                //         cout << s << endl;
+                //     }
+                //     cout << "AFTER READING STDIN of CHILD: "<< endl;
+                // }
+                cout << "fd: " << fd[0] << ", " << fd[1] << endl;
+                cout << "IN LOOP" << endl;
                 if (cmd == "1") {
                     run_two(args1, args2, fd);
                 }
-                
+                else if (cmd == "2") {
+                    if (i == 0) {
+                        run_n(args1, fd, i, STOP);
+                    }
+                    else if (i == 1) {
+                        run_n(args2, fd, i, STOP);
+                    }
+                    else if (i == 2) {
+                        run_n(args3, fd, i, STOP);
+                    }
+                    
+                } else {
+                    cout << "doing nothing > :\) " << endl;
+                }
             }
             
         
@@ -105,6 +184,7 @@ int main (){
             // we will discuss why waitpid() is preferred over wait()
         }
         // exit(0);
+        cout << "Input to continue" << endl;
         getline(cin, inputline);
         
     }
