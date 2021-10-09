@@ -53,43 +53,48 @@ void run_two(char* args1[], char* args2[], int fd[]) {
 void run_n(char* args1[], int fd[], int i, int stop) {
     cout << "\t(" << i << "/" << stop << ")" << endl;
     int pid_inner = fork();
-    printf("FORKED\n");
-    
-
     
     if (pid_inner == 0) {
         // inner child process
         // first process : ls -la / 
-        // if (i == 1) {
-        //     string s;
-        //     while (getline(cin, s)) {
-        //         cout << s << endl;
-        //     }
-        //     cout << "AFTER READING STDIN of CHILD: "<< endl;
-        //     // exit(0);
-        // }
-        cout << "inner child: " << pid_inner << endl;
-        cout << "\targs: " << args1[0] << endl;
+        cout << " inner child: " << pid_inner << endl;
+        cout << "        args: " << args1[0] << endl;
         if (i < stop - 1) {
             dup2(fd[P_WRITE], STD_OUT);
         }
         close(fd[P_READ]);
         close(fd[P_WRITE]);
-        cout << "HERE IS MORE" << endl;
         
         execvp(args1[0], args1);
     } else {
         // inner "parent" process
         // second process : grep dev
         cout << "inner parent: " << pid_inner << endl;
-        // if (i == stop - 1) {
-            waitpid(pid_inner, 0, 0);
-        // }
+        
         
         dup2(fd[P_READ], STD_IN);
         close(fd[P_READ]);
         close(fd[P_WRITE]);
-        if (i == 1) {
+
+        char* a = args1[0];
+        int x = 1;
+        cout << "CURRENT COMMAND: \n";
+        cout << "        -----------------------------------------------------" << endl;
+        cout << "        $ ";
+        while (*a != NULL) {
+            cout << a << " ";
+            a = args1[x];
+            x++;
+            if (a == NULL) {
+                break;
+            }
+        }
+        cout << endl;
+        cout << "        -----------------------------------------------------" << endl;
+
+        waitpid(pid_inner, 0, 0);
+
+        if (i == stop - 1) {
             exit(0);
         }
         // exit(0);
@@ -115,7 +120,9 @@ int main (){
 
     char* args1[] = { "ls", "-la", "/", NULL };
     char* args2[] = { "grep", "dev", NULL };
-    char* args3[] = { "awk", "'{print $1, $2, $3, \"YOU DID IT\"}'", NULL };
+    char* args3[] = { "awk", "{ print $3, $2, $1, \"REVERSE OUTPUT\"}", NULL };
+    char* args4[] = { "awk", "{ print $3, $2, $1, \"REVERSE REVERSE\"}", NULL };
+    char* args5[] = { "awk", "{ print $3, $2, $1, \"FIFTH OUTPUT\"}", NULL };
     char* echo_args1[] = {"echo", "'test1'", NULL};
     char* echo_args2[] = {"echo", "'test2'", NULL};
 
@@ -146,21 +153,26 @@ int main (){
             cout << "RUNNING WITH STOP = " << STOP << endl;
             for (int i = 0; i < STOP; ++i) {
                 
+                
+                
+                if (i == 1) {
+                    string s;
+                    while (getline(cin, s)) {
+                        cout << s << endl;
+                    }
+                    cout << "AFTER READING STDIN of PARENT: "<< endl;
+
+                    exit(0);
+                }
+
                 pipe(fd);
 
-                // if (i == 1) {
-                //     string s;
-                //     while (getline(cin, s)) {
-                //         cout << s << endl;
-                //     }
-                //     cout << "AFTER READING STDIN of CHILD: "<< endl;
-                // }
                 cout << "fd: " << fd[0] << ", " << fd[1] << endl;
                 cout << "IN LOOP" << endl;
                 if (cmd == "1") {
                     run_two(args1, args2, fd);
                 }
-                else if (cmd == "2") {
+                else {
                     if (i == 0) {
                         run_n(args1, fd, i, STOP);
                     }
@@ -170,10 +182,14 @@ int main (){
                     else if (i == 2) {
                         run_n(args3, fd, i, STOP);
                     }
+                    else if (i == 3) {
+                        run_n(args4, fd, i, STOP);
+                    }
+                    else if (i == 5) {
+                        run_n(args5, fd, i, STOP);
+                    }
                     
-                } else {
-                    cout << "doing nothing > :\) " << endl;
-                }
+                } 
             }
             
         
