@@ -155,15 +155,15 @@ int main (){
                 
                 
                 
-                if (i == 1) {
-                    string s;
-                    while (getline(cin, s)) {
-                        cout << s << endl;
-                    }
-                    cout << "AFTER READING STDIN of PARENT: "<< endl;
+                // if (i == 1) {
+                //     string s;
+                //     while (getline(cin, s)) {
+                //         cout << s << endl;
+                //     }
+                //     cout << "AFTER READING STDIN of PARENT: "<< endl;
 
-                    exit(0);
-                }
+                //     exit(0);
+                // }
 
                 pipe(fd);
 
